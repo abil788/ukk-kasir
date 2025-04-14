@@ -50,7 +50,7 @@
                 <tr class="hover:bg-gray-100">
                     <td class="py-2 px-4 border">{{ $penjualan->kode_invoice }}</td>
                     <td class="py-2 px-4 border">{{ $penjualan->pelanggan->nama ?? 'Umum' }}</td>
-                    <td class="py-2 px-4 border">{{ $penjualan->tanggal }}</td>
+                    <td class="py-2 px-4 border">{{ \Carbon\Carbon::parse($penjualan->tanggal)->format('d-m-Y') }}</td>
                     <td class="py-2 px-4 border">Rp{{ number_format($penjualan->total_harga, 0, ',', '.') }}</td>
                     <td class="py-2 px-4 border">
                         <span class="px-2 py-1 text-sm rounded 
