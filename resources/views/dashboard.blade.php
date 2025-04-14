@@ -77,8 +77,8 @@
                             <td class="py-2 px-4 border text-right">Rp {{ number_format($penjualan->total_harga, 0, ',', '.') }}</td>
                             <td class="py-2 px-4 border text-center">
                                 <span class="px-2 py-1 text-xs rounded 
-                                    {{ $penjualan->status_pembayaran == 'Lunas' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">
-                                    {{ $penjualan->status_pembayaran }}
+                                    {{ strtolower($penjualan->status_pembayaran) == 'lunas' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800' }}">
+                                    {{ ucfirst($penjualan->status_pembayaran) }}
                                 </span>
                             </td>
                             <td class="py-2 px-4 border text-center">

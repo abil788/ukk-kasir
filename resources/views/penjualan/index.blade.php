@@ -65,7 +65,6 @@
                         <a href="{{ route('penjualans.edit', $penjualan->id) }}" class="bg-yellow-500 hover:bg-yellow-600 text-white py-1 px-3 rounded text-sm">
                             <i class="fas fa-edit"></i>
                         </a>
-                        <!-- Tombol Hapus dengan Modal -->
                         <button onclick="showDeleteModal({{ $penjualan->id }})" class="bg-red-500 hover:bg-red-600 text-white py-1 px-3 rounded text-sm">
                             <i class="fas fa-trash"></i>
                         </button>
