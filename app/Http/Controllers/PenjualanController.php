@@ -55,8 +55,9 @@ class PenjualanController extends Controller
             'produk_id.*' => 'exists:produks,id',
             'jumlah' => 'required|array',
             'jumlah.*' => 'integer|min:1',
-            'status_pembayaran' => 'required|string',
+            'status_pembayaran' => 'required|string|in:lunas,pending',
             'metode_pembayaran' => 'required|string',
+            'uang_pelanggan' => 'required|numeric|min:0',
         ]);
 
         DB::beginTransaction();
@@ -64,7 +65,7 @@ class PenjualanController extends Controller
         try {
             $totalHarga = 0;
 
-            // Generate kode invoice yang berbeda
+            // Generate kode invoice yang unik
             do {
                 $kodeInvoice = 'INV-' . strtoupper(Str::random(10));
             } while (Penjualan::where('kode_invoice', $kodeInvoice)->exists());
@@ -72,7 +73,7 @@ class PenjualanController extends Controller
             $produkIds = $request->produk_id;
             $jumlahs = $request->jumlah;
 
-            // Validasi stok dulu sebelum membuat transaksi
+            // Cek stok produk
             foreach ($produkIds as $key => $produkId) {
                 $produk = Produk::findOrFail($produkId);
                 $jumlah = $jumlahs[$key];
@@ -82,17 +83,17 @@ class PenjualanController extends Controller
                 }
             }
 
-            // Buat penjualan kosong dulu
+            // Buat data penjualan sementara
             $penjualan = Penjualan::create([
                 'pelanggan_id' => $request->pelanggan_id,
                 'tanggal' => $request->tanggal,
-                'total_harga' => 0, // akan diupdate nanti
+                'total_harga' => 0,
                 'status_pembayaran' => $request->status_pembayaran,
                 'metode_pembayaran' => $request->metode_pembayaran,
                 'kode_invoice' => $kodeInvoice,
             ]);
 
-            // Proses tiap produk dan simpan detailnya
+            // Proses detail produk
             foreach ($produkIds as $key => $produkId) {
                 $produk = Produk::findOrFail($produkId);
                 $jumlah = $jumlahs[$key];
@@ -109,19 +110,20 @@ class PenjualanController extends Controller
                     'subtotal' => $subtotal,
                 ]);
 
-                // Update stok
+                // Kurangi stok
                 $produk->decrement('stok', $jumlah);
             }
 
-            // Update total harga & jika uang pelanggan kurang maka ditolak
+            // Update total harga
             $penjualan->update(['total_harga' => $totalHarga]);
 
-            if ($request->uang_pelanggan < $totalHarga) {
-                return back()->with('error', 'Uang pelanggan tidak cukup. Total harga: Rp' . number_format($totalHarga, 0, ',', '.') . ', uang pelanggan: Rp' . number_format($request->uang_pelanggan, 0, ',', '.'));
+            // Validasi berdasarkan status pembayaran
+            if ($request->status_pembayaran === 'lunas' && $request->uang_pelanggan < $totalHarga) {
+                DB::rollBack(); // balikin semua proses
+                return back()->with('error', 'Uang pelanggan tidak cukup untuk pembayaran lunas. Total harga: Rp' . number_format($totalHarga, 0, ',', '.') . ', uang pelanggan: Rp' . number_format($request->uang_pelanggan, 0, ',', '.'));
             }
 
             DB::commit();
-
             return redirect()->route('penjualans.index')->with('success', 'Transaksi berhasil ditambahkan!');
         } catch (\Exception $e) {
             DB::rollBack();
