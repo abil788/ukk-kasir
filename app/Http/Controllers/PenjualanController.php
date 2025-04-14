@@ -168,11 +168,16 @@ class PenjualanController extends Controller
     }
 
     //menghapus data penjualan
-    public function destroy($id)
+    public function destroy(Request $request, $id)
     {
+        if ($request->kode_keamanan !== '788979') {
+            return back()->with('error', 'Kode keamanan salah. Data tidak dihapus.');
+        }
+
         $penjualan = Penjualan::findOrFail($id);
         $penjualan->delete();
 
         return redirect()->route('penjualans.index')->with('success', 'Data penjualan berhasil dihapus!');
     }
+
 }

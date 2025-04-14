@@ -17,16 +17,21 @@
         </div>
     @endif
 
+    @if(session('error'))
+        <div class="bg-red-100 text-red-700 p-3 rounded mb-4">
+            {{ session('error') }}
+        </div>
+    @endif
+
     <!-- Form Pencarian -->
     <div class="mb-4">
-            <form action="{{ route('penjualans.index') }}" method="GET" class="flex space-x-2">
-                <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari kode invoice..." class="border p-2 rounded w-full">
-                <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
-                    Cari
-                </button>
-            </form>
-        </div>
-
+        <form action="{{ route('penjualans.index') }}" method="GET" class="flex space-x-2">
+            <input type="text" name="search" value="{{ request('search') }}" placeholder="Cari kode invoice..." class="border p-2 rounded w-full">
+            <button type="submit" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
+                Cari
+            </button>
+        </form>
+    </div>
 
     <div class="overflow-x-auto">
         <table class="w-full border border-gray-300 rounded-lg overflow-hidden">
@@ -60,13 +65,10 @@
                         <a href="{{ route('penjualans.edit', $penjualan->id) }}" class="bg-yellow-500 hover:bg-yellow-600 text-white py-1 px-3 rounded text-sm">
                             <i class="fas fa-edit"></i>
                         </a>
-                        <form action="{{ route('penjualans.destroy', $penjualan->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus?');">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="bg-red-500 hover:bg-red-600 text-white py-1 px-3 rounded text-sm">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </form>
+                        <!-- Tombol Hapus dengan Modal -->
+                        <button onclick="showDeleteModal({{ $penjualan->id }})" class="bg-red-500 hover:bg-red-600 text-white py-1 px-3 rounded text-sm">
+                            <i class="fas fa-trash"></i>
+                        </button>
                     </td>
                 </tr>
                 @endforeach
@@ -75,7 +77,37 @@
     </div>
 
     <div class="mt-4">
-    {{ $penjualans->links() }}
+        {{ $penjualans->links() }}
     </div>
 </div>
+
+<!-- Modal Konfirmasi Hapus -->
+<div id="deleteModal" class="hidden fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center">
+    <div class="bg-white p-6 rounded shadow-md w-96">
+        <h3 class="text-lg font-semibold mb-2">Konfirmasi Hapus</h3>
+        <p class="mb-4">Masukkan kode keamanan untuk menghapus penjualan.</p>
+
+        <form id="deleteForm" method="POST">
+            @csrf
+            @method('DELETE')
+            <input type="password" name="kode_keamanan" placeholder="Masukkan kode" required class="border p-2 w-full rounded mb-4">
+            <div class="flex justify-end space-x-2">
+                <button type="button" onclick="closeDeleteModal()" class="px-4 py-2 bg-gray-300 rounded">Batal</button>
+                <button type="submit" class="px-4 py-2 bg-red-500 text-white rounded">Hapus</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function showDeleteModal(id) {
+        const form = document.getElementById('deleteForm');
+        form.action = '/penjualans/' + id;
+        document.getElementById('deleteModal').classList.remove('hidden');
+    }
+
+    function closeDeleteModal() {
+        document.getElementById('deleteModal').classList.add('hidden');
+    }
+</script>
 @endsection
